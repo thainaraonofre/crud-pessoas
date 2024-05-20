@@ -1,4 +1,4 @@
-package model;
+package com.examplo.crudpessoas.model;
 
 
 import jakarta.persistence.*;
