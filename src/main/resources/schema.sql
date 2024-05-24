@@ -1,0 +1,6 @@
+CREATE TABLE pessoas (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    idade INT NOT NULL,
+    cpf VARCHAR(11) NOT NULL
+);
