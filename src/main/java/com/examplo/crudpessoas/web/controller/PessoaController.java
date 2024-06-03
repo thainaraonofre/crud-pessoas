@@ -1,9 +1,8 @@
-package com.examplo.crudpessoas.controller;
+package com.examplo.crudpessoas.web.controller;
 
-
-import com.examplo.crudpessoas.dto.PessoaDTO;
-import com.examplo.crudpessoas.exception.ResourceNotFoundException;
+import com.examplo.crudpessoas.web.dto.PessoaDTO;
 import com.examplo.crudpessoas.service.PessoaService;
+import com.examplo.crudpessoas.web.exception.ErrorMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.spi.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,12 +44,8 @@ public class PessoaController {
             })
     @GetMapping("/{id}")
     public ResponseEntity<PessoaDTO> getPessoaById(@PathVariable Long id) {
-        try {
-            PessoaDTO pessoa = pessoaService.findById(id);
-            return ResponseEntity.ok(pessoa);
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        PessoaDTO pessoa = pessoaService.findById(id);
+        return ResponseEntity.ok(pessoa);
     }
 
     @Operation(summary = "Cria uma nova pessoa", description = "Cria um novo registro de pessoa",
@@ -62,14 +56,15 @@ public class PessoaController {
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class)))
             })
     @PostMapping
-    public ResponseEntity<PessoaDTO> createPessoa(@Valid @RequestBody PessoaDTO pessoaDTO) {
+    public ResponseEntity<PessoaDTO> create(@RequestBody @Valid PessoaDTO pessoaDTO) {
         PessoaDTO createdPessoa = pessoaService.save(pessoaDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPessoa);
     }
 
+
     @Operation(summary = "Atualiza uma pessoa existente", description = "Atualiza os dados de uma pessoa existente",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Pessoa atualizada com sucesso",
+                    @ApiResponse(responseCode = "201", description = "Pessoa atualizada com sucesso",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = PessoaDTO.class))),
                     @ApiResponse(responseCode = "404", description = "Pessoa não encontrada",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class))),
@@ -78,12 +73,8 @@ public class PessoaController {
             })
     @PutMapping("/{id}")
     public ResponseEntity<PessoaDTO> updatePessoa(@PathVariable Long id, @Valid @RequestBody PessoaDTO pessoaDTO) {
-        try {
-            PessoaDTO updatedPessoa = pessoaService.update(id, pessoaDTO);
-            return ResponseEntity.ok(updatedPessoa);
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        PessoaDTO updatedPessoa = pessoaService.update(id, pessoaDTO);
+        return ResponseEntity.ok(updatedPessoa);
     }
 
     @Operation(summary = "Deleta uma pessoa pelo ID", description = "Deleta o registro de uma pessoa pelo ID",
@@ -94,11 +85,7 @@ public class PessoaController {
             })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePessoa(@PathVariable Long id) {
-        try {
-            pessoaService.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        pessoaService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
