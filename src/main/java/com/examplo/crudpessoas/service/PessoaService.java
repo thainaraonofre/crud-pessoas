@@ -1,23 +1,24 @@
 package com.examplo.crudpessoas.service;
 
-import com.examplo.crudpessoas.dto.PessoaDTO;
+import com.examplo.crudpessoas.web.dto.PessoaDTO;
+import com.examplo.crudpessoas.exception.CPFInvalido;
 import com.examplo.crudpessoas.exception.ResourceNotFoundException;
-import com.examplo.crudpessoas.mapper.PessoaMapper;
 import com.examplo.crudpessoas.model.Pessoa;
 import com.examplo.crudpessoas.repository.PessoaRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
+import com.examplo.crudpessoas.mapper.PessoaMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class PessoaService {
 
     private final PessoaRepository pessoaRepository;
-    private final PessoaMapper pessoaMapper = PessoaMapper.INSTANCE;
+    private final PessoaMapper pessoaMapper;
 
     @Transactional(readOnly = true)
     public List<PessoaDTO> findAll() {
@@ -35,9 +36,20 @@ public class PessoaService {
 
     @Transactional
     public PessoaDTO save(PessoaDTO pessoaDTO) {
+        validateCPF(pessoaDTO.getCpf());
         Pessoa pessoa = pessoaMapper.toPessoa(pessoaDTO);
-        Pessoa savedPessoa = pessoaRepository.save(pessoa);
-        return pessoaMapper.toPessoaDTO(savedPessoa);
+        return pessoaMapper.toPessoaDTO(pessoaRepository.save(pessoa));
+    }
+
+    @Transactional
+    public PessoaDTO update(Long id, PessoaDTO pessoaDTO) {
+        validateCPF(pessoaDTO.getCpf());
+        if (!pessoaRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Pessoa não encontrada com o ID: " + id);
+        }
+        Pessoa pessoa = pessoaMapper.toPessoa(pessoaDTO);
+        pessoa.setId(id);
+        return pessoaMapper.toPessoaDTO(pessoaRepository.save(pessoa));
     }
 
     @Transactional
@@ -48,16 +60,10 @@ public class PessoaService {
         pessoaRepository.deleteById(id);
     }
 
-    @Transactional
-    public PessoaDTO update(Long id, PessoaDTO pessoaDTO) {
-        Pessoa existingPessoa = pessoaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Pessoa não encontrada com o ID: " + id));
-
-        existingPessoa.setNome(pessoaDTO.getNome());
-        existingPessoa.setIdade(pessoaDTO.getIdade());
-        existingPessoa.setCpf(pessoaDTO.getCpf());
-
-        Pessoa updatedPessoa = pessoaRepository.save(existingPessoa);
-        return pessoaMapper.toPessoaDTO(updatedPessoa);
+    private void validateCPF(String cpf) {
+        if (cpf.length() != 11) {
+            throw new CPFInvalido("O CPF deve ter 11 caracteres");
+        }
     }
+
 }
